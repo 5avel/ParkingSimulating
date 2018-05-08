@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="BLL\Car.cs" />
     <Compile Include="BLL\CarType.cs" />
+    <Compile Include="BLL\Parking.cs" />
     <Compile Include="BLL\Settings.cs" />
     <Compile Include="BLL\Transaction.cs" />
     <Compile Include="Program.cs" />
