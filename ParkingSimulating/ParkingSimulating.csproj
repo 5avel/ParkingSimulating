@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\Car.cs" />
     <Compile Include="BLL\CarType.cs" />
     <Compile Include="BLL\Settings.cs" />
     <Compile Include="Program.cs" />
