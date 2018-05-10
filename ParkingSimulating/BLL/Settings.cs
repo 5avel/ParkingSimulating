@@ -9,13 +9,17 @@ namespace ParkingSimulating.BLL
     public static class Settings
     {
         public static TimeSpan Timeout { get; private set; }
+        public static TimeSpan LogTimeout { get; private set; }
         public static Dictionary<CarType, decimal> ParkingPrice { get; private set; }
         public static int ParkingSpace { get; private set; }
         public static decimal Fine { get; private set; }
 
+        public static string LogPath { get; private set; }
+
         static Settings()
         {
             Timeout = new TimeSpan(0, 0, 3);
+            LogTimeout = new TimeSpan(0, 0, 30);
 
             ParkingPrice = new Dictionary<CarType, decimal>
             {
@@ -28,6 +32,8 @@ namespace ParkingSimulating.BLL
             ParkingSpace = 10;
 
             Fine = 1.2m;
+
+            LogPath = AppDomain.CurrentDomain.BaseDirectory + "Transactions.log";
         }
     }
 }

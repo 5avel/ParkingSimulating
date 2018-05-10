@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,15 +14,21 @@ namespace ParkingSimulating.BLL
         public static Parking Instance { get => lazy.Value; }
 
         private List<Car> cars = new List<Car>();
+        private object carsSyncRoot = new object();
+
         private List<Transaction> transactions = new List<Transaction>();
+
+        private object transactionsSyncRoot = new object();
 
         public decimal ParkingBalance { get; private set; }
 
         private Timer calcTimer;
+        private Timer logTimer;
 
         private Parking()
         {
             this.calcTimer = new Timer(new TimerCallback(PayCalc), null, Settings.Timeout, Settings.Timeout);
+            this.logTimer = new Timer(new TimerCallback(WriteLogAndCleanTransactions), null, Settings.LogTimeout, Settings.LogTimeout);
 
         }
 
@@ -78,10 +85,15 @@ namespace ParkingSimulating.BLL
                 {
                     curPrice = (parkingPrice * fine);
                 }
+                
                 car.Balance -= curPrice;
+                
                 this.ParkingBalance += curPrice;
                 // Add transaction
-                this.transactions.Add(new Transaction(car.LicensePlate, curPrice));
+                lock (transactionsSyncRoot)
+                {
+                    this.transactions.Add(new Transaction(car.LicensePlate, curPrice));
+                }
             }
         }
 
@@ -103,6 +115,27 @@ namespace ParkingSimulating.BLL
         public int CountOccupiedParkingPlaces() => this.cars.Count;
 
         public List<Transaction> AllTransaction() => this.transactions;
+
+        private void WriteLogAndCleanTransactions(object o)
+        {
+            decimal sum = 0;
+
+            lock (transactionsSyncRoot)
+            {
+                sum = transactions.Sum(t => t.Debited);
+            }
+
+            using (StreamWriter sw = new StreamWriter(Settings.LogPath, true))
+            {
+                sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
+            }
+
+            lock (transactionsSyncRoot)
+            {
+                transactions.Clear();
+            }
+
+        }
 
     }
 }
