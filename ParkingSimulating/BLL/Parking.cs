@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ParkingSimulating.BLL
@@ -15,11 +16,12 @@ namespace ParkingSimulating.BLL
         private List<Transaction> transactions = new List<Transaction>();
         public decimal ParkingBalance { get; private set; }
 
-        
+        private Timer calcTimer;
 
         private Parking()
         {
-            
+            this.calcTimer = new Timer(new TimerCallback(PayCalc), null, Settings.Timeout, Settings.Timeout);
+
         }
 
         /// <summary>
@@ -46,8 +48,43 @@ namespace ParkingSimulating.BLL
             Car delCar = cars.FirstOrDefault<Car>(x => x.LicensePlate == carLicensePlate);
             if (delCar == null) return false;
 
+            if (delCar.Balance < 0) return false;
+
             return cars.Remove(delCar);
         }
+
+        private void PayCalc(object o)
+        {
+            foreach(Car car in cars)
+            {
+                decimal parkingPrice = Settings.ParkingPrice[car.CarType];
+                decimal fine = Settings.Fine;
+                decimal curPrice = 0;
+                if (car.Balance > 0)
+                {
+                    if(car.Balance < parkingPrice)
+                    {
+                        decimal rest = car.Balance;
+                        decimal negativeBalance = (parkingPrice - rest) * fine;
+                        curPrice = (rest + negativeBalance);
+                    }
+                    else
+                    {
+                        curPrice = parkingPrice;
+                    }
+                }
+                else
+                {
+                    curPrice = (parkingPrice * fine);
+                }
+                car.Balance -= curPrice;
+                this.ParkingBalance += curPrice;
+                // Add transaction
+                this.transactions.Add(new Transaction(car.LicensePlate, curPrice));
+            }
+        }
+
+
 
 
     }

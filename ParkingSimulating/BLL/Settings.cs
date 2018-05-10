@@ -9,25 +9,25 @@ namespace ParkingSimulating.BLL
     public static class Settings
     {
         public static TimeSpan Timeout { get; private set; }
-        public static Dictionary<CarType, int> ParkingPrice { get; private set; }
+        public static Dictionary<CarType, decimal> ParkingPrice { get; private set; }
         public static int ParkingSpace { get; private set; }
-        public static double Fine { get; private set; }
+        public static decimal Fine { get; private set; }
 
         static Settings()
         {
-            Timeout = new TimeSpan(0, 0, 3000);
+            Timeout = new TimeSpan(0, 0, 3);
 
-            ParkingPrice = new Dictionary<CarType, int>
+            ParkingPrice = new Dictionary<CarType, decimal>
             {
-                { CarType.Truck,      5},
-                { CarType.Passenger,  3},
-                { CarType.Bus,        2},
-                { CarType.Motorcycle, 1}
+                { CarType.Truck,      5m},
+                { CarType.Passenger,  3m},
+                { CarType.Bus,        2m},
+                { CarType.Motorcycle, 1m}
             };
 
             ParkingSpace = 10;
 
-            Fine = 1.2;
+            Fine = 1.2m;
         }
     }
 }
