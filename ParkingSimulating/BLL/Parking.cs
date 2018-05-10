@@ -26,12 +26,14 @@ namespace ParkingSimulating.BLL
         /// Adds a unique car to the parking.
         /// </summary>
         /// <param name="car"></param>
-        /// <returns>false if car == null or car is not unique</returns>
+        /// <returns>false if car == null, parking is full or car is not unique</returns>
         public bool AddCar(Car car)
         {
             if (car == null) return false;
 
             if (cars.Count >= Settings.ParkingSpace) return false;
+
+            if (cars.Count(x => x.LicensePlate == car.LicensePlate) > 0) return false;
 
             cars.Add(car);
             return true;
