@@ -95,9 +95,9 @@ namespace ParkingSimulating.BLL
             return true;
         }
 
-        public decimal GetPotalParkingIncome() => this.ParkingBalance;
-        
+        public decimal GetTotalParkingIncome() => this.ParkingBalance;
 
+        public int CountFreeParkingPlaces() => Settings.ParkingSpace - this.cars.Count;
 
     }
 }
