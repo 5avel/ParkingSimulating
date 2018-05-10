@@ -84,7 +84,16 @@ namespace ParkingSimulating.BLL
             }
         }
 
+        public bool AddBalanceCar(string licensePlate, decimal money)
+        {
+            if (String.IsNullOrWhiteSpace(licensePlate)) return false;
 
+            Car car = this.cars.FirstOrDefault(x => x.LicensePlate == licensePlate);
+            if (car == null) return false;
+
+            car.Balance += money;
+            return true;
+        }
 
 
     }
