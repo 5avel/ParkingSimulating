@@ -100,6 +100,8 @@ namespace ParkingSimulating.BLL
 
         public int CountFreeParkingPlaces() => Settings.ParkingSpace - this.cars.Count;
 
+        public int CountOccupiedParkingPlaces() => this.cars.Count;
+
         public List<Transaction> AllTransaction() => this.transactions;
 
     }
