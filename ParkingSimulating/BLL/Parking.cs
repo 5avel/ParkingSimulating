@@ -95,6 +95,9 @@ namespace ParkingSimulating.BLL
             return true;
         }
 
+        public decimal GetPotalParkingIncome() => this.ParkingBalance;
+        
+
 
     }
 }
