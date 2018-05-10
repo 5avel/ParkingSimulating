@@ -14,6 +14,7 @@ namespace ParkingSimulating.BLL
 
         private List<Car> cars = new List<Car>();
         private List<Transaction> transactions = new List<Transaction>();
+
         public decimal ParkingBalance { get; private set; }
 
         private Timer calcTimer;
@@ -98,6 +99,8 @@ namespace ParkingSimulating.BLL
         public decimal GetTotalParkingIncome() => this.ParkingBalance;
 
         public int CountFreeParkingPlaces() => Settings.ParkingSpace - this.cars.Count;
+
+        public List<Transaction> AllTransaction() => this.transactions;
 
     }
 }
