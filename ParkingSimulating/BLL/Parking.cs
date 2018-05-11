@@ -20,7 +20,26 @@ namespace ParkingSimulating.BLL
 
         private object transactionsSyncRoot = new object();
 
-        public decimal ParkingBalance { get; private set; }
+        private object parkingBalanceSyncRoot = new object();
+        private decimal parkingBalance;
+        public decimal ParkingBalance
+        {
+            get
+            {
+                lock (parkingBalanceSyncRoot)
+                {
+                    return parkingBalance;
+                }
+            }
+            private set
+            {
+                lock (parkingBalanceSyncRoot)
+                {
+                    parkingBalance = value;
+                }
+            }
+        }
+
 
         private Timer calcTimer;
         private Timer logTimer;
@@ -30,6 +49,11 @@ namespace ParkingSimulating.BLL
             this.calcTimer = new Timer(new TimerCallback(PayCalc), null, Settings.Timeout, Settings.Timeout);
             this.logTimer = new Timer(new TimerCallback(WriteLogAndCleanTransactions), null, Settings.LogTimeout, Settings.LogTimeout);
 
+        }
+
+        public IList<T> CloneList<T>(IList<T> listToClone) where T : ICloneable
+        {
+            return listToClone.Select(item => (T)item.Clone()).ToList();
         }
 
         /// <summary>
@@ -103,16 +127,22 @@ namespace ParkingSimulating.BLL
 
             Car car = this.cars.FirstOrDefault(x => x.LicensePlate == licensePlate);
             if (car == null) return false;
-
+            
             car.Balance += money;
             return true;
         }
 
         public decimal GetTotalParkingIncome() => this.ParkingBalance;
-
+        
         public int CountFreeParkingPlaces() => Settings.ParkingSpace - this.cars.Count;
 
-        public int CountOccupiedParkingPlaces() => this.cars.Count;
+        public int CountOccupiedParkingPlaces()
+        {
+            lock (carsSyncRoot)
+            {
+                return this.cars.Count;
+            }
+        }
 
         public List<Transaction> AllTransaction() => this.transactions;
 
@@ -135,6 +165,34 @@ namespace ParkingSimulating.BLL
                 transactions.Clear();
             }
 
+        }
+
+        public decimal GetIncomeLastMinute()
+        {
+            decimal sum = 0;
+
+            lock (transactionsSyncRoot)
+            {
+                sum = transactions.Sum(t => t.Debited);
+            }
+
+            return sum;
+        }
+
+        public List<Car> GetAllCars()
+        {
+            lock (carsSyncRoot)
+            {
+                return CloneList<Car>(this.cars).ToList<Car>();
+            }
+        }
+
+        public List<Transaction> GetAllTransactions()
+        {
+            lock (transactionsSyncRoot)
+            {
+                return CloneList<Transaction>(this.transactions).ToList<Transaction>();
+            }
         }
 
     }

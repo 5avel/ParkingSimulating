@@ -19,7 +19,7 @@ namespace ParkingSimulating.BLL
         static Settings()
         {
             Timeout = new TimeSpan(0, 0, 3);
-            LogTimeout = new TimeSpan(0, 0, 30);
+            LogTimeout = new TimeSpan(0, 1, 0);
 
             ParkingPrice = new Dictionary<CarType, decimal>
             {

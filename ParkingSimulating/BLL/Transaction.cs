@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ParkingSimulating.BLL
 {
-    public class Transaction
+    public class Transaction : ICloneable
     {
         public DateTime DateTime { get; private set; }
         public string CarLicensePlate { get; private set; }
@@ -17,6 +17,11 @@ namespace ParkingSimulating.BLL
             this.DateTime = DateTime.Now;
             this.CarLicensePlate = carLicensePlate;
             this.Debited = debited;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }
