@@ -22,7 +22,7 @@ namespace ParkingSimulating
             Console.WriteLine("6. Show income in the last minute.");
             Console.WriteLine("7. Free/occupied places count.");
             Console.WriteLine("8. Show all cars in the parking.");
-            Console.WriteLine("9. Show .");
+            Console.WriteLine("9. Show Transactions.log.");
             Console.WriteLine("0. To Exit.");
 
             switch (Console.ReadLine())
@@ -50,6 +50,12 @@ namespace ParkingSimulating
                     break;
                 case "8":
                     ShowAllCars();
+                    break;
+                case "9":
+                    
+                    break;
+                case "0":
+                    
                     break;
                 default:
                     MainMenu();
@@ -151,9 +157,14 @@ namespace ParkingSimulating
             else
             {
                 if (carId == "#") MainMenu();
-                if(Parking.Instance.DelCar(carId))
+                int delResult = Parking.Instance.DelCar(carId);
+                if (delResult == 1)
                 {
                     MainMenu(String.Format("The machine whis number \"{0}\" was successfully deleted.", carId));
+                }
+                else if(delResult == -3)
+                {
+                    DelCarById(String.Format("The machine with the number {0} has a negative balance. Please Replenish balance.", carId));
                 }
                 else
                 {
@@ -222,5 +233,16 @@ namespace ParkingSimulating
             Console.ReadKey();
             MainMenu();
         }
+
+        private static void ShowTransactionsLog()
+        {
+            Console.Clear();
+            
+            Console.WriteLine("Any kay to MainMenu");
+            Console.ReadKey();
+            MainMenu();
+        }
+
+
     }
 }

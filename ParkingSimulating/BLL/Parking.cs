@@ -73,16 +73,28 @@ namespace ParkingSimulating.BLL
             return true;
         }
 
-        public bool DelCar(string carLicensePlate)
+        /// <summary>
+        /// Removing car from parking
+        /// </summary>
+        /// <param name="carLicensePlate">License Plate or Id</param>
+        /// <returns> 1 - car successfully deleted; 0 - car not deleted; -1 - carLicensePlate IsNullOrWhiteSpace; -2 - ar not found; -3 - The Car has a negative balance</returns>
+        public int DelCar(string carLicensePlate)
         {
-            if (String.IsNullOrWhiteSpace(carLicensePlate)) return false;
+            if (String.IsNullOrWhiteSpace(carLicensePlate)) return -1;
 
             Car delCar = cars.FirstOrDefault<Car>(x => x.LicensePlate == carLicensePlate);
-            if (delCar == null) return false;
+            if (delCar == null) return -2;
 
-            if (delCar.Balance < 0) return false;
+            if (delCar.Balance < 0) return -3;
 
-            return cars.Remove(delCar);
+            if(cars.Remove(delCar))
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         private void PayCalc(object o)
