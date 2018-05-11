@@ -52,7 +52,7 @@ namespace ParkingSimulating
                     ShowAllCars();
                     break;
                 case "9":
-                    
+                    ShowTransactionsLog();
                     break;
                 case "0":
                     
@@ -237,7 +237,10 @@ namespace ParkingSimulating
         private static void ShowTransactionsLog()
         {
             Console.Clear();
-            
+            foreach(string str in Parking.Instance.GetTransactionsLog())
+            {
+                Console.WriteLine(str);
+            }
             Console.WriteLine("Any kay to MainMenu");
             Console.ReadKey();
             MainMenu();

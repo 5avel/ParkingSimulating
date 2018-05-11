@@ -20,6 +20,8 @@ namespace ParkingSimulating.BLL
 
         private object transactionsSyncRoot = new object();
 
+        private object logFileSyncRoot = new object();
+
         private object parkingBalanceSyncRoot = new object();
         private decimal parkingBalance;
         public decimal ParkingBalance
@@ -87,7 +89,7 @@ namespace ParkingSimulating.BLL
 
             if (delCar.Balance < 0) return -3;
 
-            if(cars.Remove(delCar))
+            if (cars.Remove(delCar))
             {
                 return 1;
             }
@@ -99,14 +101,14 @@ namespace ParkingSimulating.BLL
 
         private void PayCalc(object o)
         {
-            foreach(Car car in cars)
+            foreach (Car car in cars)
             {
                 decimal parkingPrice = Settings.ParkingPrice[car.CarType];
                 decimal fine = Settings.Fine;
                 decimal curPrice = 0;
                 if (car.Balance > 0)
                 {
-                    if(car.Balance < parkingPrice)
+                    if (car.Balance < parkingPrice)
                     {
                         decimal rest = car.Balance;
                         decimal negativeBalance = (parkingPrice - rest) * fine;
@@ -121,9 +123,9 @@ namespace ParkingSimulating.BLL
                 {
                     curPrice = (parkingPrice * fine);
                 }
-                
+
                 car.Balance -= curPrice;
-                
+
                 this.ParkingBalance += curPrice;
                 // Add transaction
                 lock (transactionsSyncRoot)
@@ -139,13 +141,13 @@ namespace ParkingSimulating.BLL
 
             Car car = this.cars.FirstOrDefault(x => x.LicensePlate == licensePlate);
             if (car == null) return false;
-            
+
             car.Balance += money;
             return true;
         }
 
         public decimal GetTotalParkingIncome() => this.ParkingBalance;
-        
+
         public int CountFreeParkingPlaces() => Settings.ParkingSpace - this.cars.Count;
 
         public int CountOccupiedParkingPlaces()
@@ -160,16 +162,24 @@ namespace ParkingSimulating.BLL
 
         private void WriteLogAndCleanTransactions(object o)
         {
-            decimal sum = 0;
+            string path = Settings.LogPath;
 
+            if (!File.Exists(path)) throw new FileNotFoundException();
+
+            if (!String.IsNullOrWhiteSpace(path)) throw new ArgumentNullException();
+          
+            decimal sum = 0;
             lock (transactionsSyncRoot)
             {
                 sum = transactions.Sum(t => t.Debited);
             }
 
-            using (StreamWriter sw = new StreamWriter(Settings.LogPath, true))
+            lock (logFileSyncRoot)
             {
-                sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
+                using (StreamWriter sw = new StreamWriter(path, true))
+                {
+                    sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
+                }
             }
 
             lock (transactionsSyncRoot)
@@ -205,6 +215,40 @@ namespace ParkingSimulating.BLL
             {
                 return CloneList<Transaction>(this.transactions).ToList<Transaction>();
             }
+        }
+
+        public List<string> GetTransactionsLog()
+        {
+            string path = Settings.LogPath;
+            List<string> log = new List<string>();
+            if (File.Exists(path) && !String.IsNullOrWhiteSpace(path))
+            {
+               
+                lock (logFileSyncRoot)
+                {
+                    StreamReader sr;
+                    try
+                    {
+                        using (sr = new StreamReader(path, true))
+                        {
+                            string line;
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                log.Add(line);
+                            }
+                        }
+                    }
+                    catch(IOException ioe)
+                    {
+                        log.Add(ioe.Message);
+                    }
+                    finally
+                    {
+                        //
+                    }
+                }
+            }
+            return log;
         }
 
     }
