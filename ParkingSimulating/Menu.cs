@@ -15,10 +15,13 @@ namespace ParkingSimulating
             if (msg != null) Console.WriteLine(msg);
             Console.WriteLine("=====MainMenu=====");
             Console.WriteLine("1. Add car.");
-            Console.WriteLine("2. Del car.");
-            Console.WriteLine("3. ");
-            Console.WriteLine("4. ");
-            Console.WriteLine("5. Free places count.");
+            Console.WriteLine("2. Del car by id.");
+            Console.WriteLine("3. Replenish balance of the car.");
+            Console.WriteLine("4. Display transaction history for the last minute.");
+            Console.WriteLine("5. Show total income from parking.");
+            Console.WriteLine("6. Show the amount of earnings in the last minute.");
+            Console.WriteLine("7. Free places count.");
+            Console.WriteLine("8. Show all cars in the parking.");
 
             switch (Console.ReadLine())
             {
@@ -26,7 +29,7 @@ namespace ParkingSimulating
                     AddCar();
                     break;
                 case "2":
-
+                    DelCarById();
                     break;
                 case "3":
 
@@ -35,12 +38,20 @@ namespace ParkingSimulating
 
                     break;
                 case "5":
+
+                    break;
+                case "6":
+
+                    break;
+                case "7":
                     ShowFreePlacesCount();
+                    break;
+                case "8":
+                    
                     break;
                 default:
                     MainMenu();
                     break;
-
             }
         }
 
@@ -59,7 +70,7 @@ namespace ParkingSimulating
         {
             if (msg != null) Console.WriteLine(msg);
             string carId = EnterCarId();
-            CarType carType = CheseCarType();
+            CarType carType = СhoiceCarType();
             decimal diposit = EnterDiposit();
 
             if(Parking.Instance.AddCar(new Car(carId, carType, diposit)))
@@ -82,7 +93,7 @@ namespace ParkingSimulating
             return carLicensePlate;
         }
 
-        private static CarType CheseCarType()
+        private static CarType СhoiceCarType()
         {
             Console.Clear();
             Console.WriteLine("select car type:");
@@ -102,7 +113,7 @@ namespace ParkingSimulating
                 case "4":
                     return CarType.Motorcycle;
                 default :
-                    return CheseCarType();
+                    return СhoiceCarType();
             }
         }
 
@@ -120,5 +131,30 @@ namespace ParkingSimulating
         }
 
         #endregion AddCar
+
+        private static void DelCarById(string msg = null)
+        {
+            Console.Clear();
+            if (msg != null) Console.WriteLine(msg);
+            Console.WriteLine("To return to the main menu, enter \"#\" and press \"Enter\".");
+            Console.WriteLine("Enter car id:");
+            string carId = Console.ReadLine();
+            if (String.IsNullOrWhiteSpace(carId))
+            {
+                DelCarById("The number of the car can not be empty.Please try again.");
+            }
+            else
+            {
+                if (carId == "#") MainMenu();
+                if(Parking.Instance.DelCar(carId))
+                {
+                    MainMenu(String.Format("The machine whis number \"{0}\" was successfully deleted.", carId));
+                }
+                else
+                {
+                    DelCarById(String.Format("The machine with the number {0} is not found. Please try again.", carId));
+                }
+            }
+        }
     }
 }
