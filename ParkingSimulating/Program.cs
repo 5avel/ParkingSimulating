@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParkingSimulating.BLL;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace ParkingSimulating
     {
         static void Main(string[] args)
         {
+            Menu.MainMenu();
         }
     }
 }
