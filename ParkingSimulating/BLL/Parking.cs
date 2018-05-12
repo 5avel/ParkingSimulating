@@ -163,8 +163,6 @@ namespace ParkingSimulating.BLL
         private void WriteLogAndCleanTransactions(object o)
         {
             string path = Settings.LogPath;
-
-            if (!String.IsNullOrWhiteSpace(path)) throw new ArgumentNullException();
           
             decimal sum = 0;
             lock (transactionsSyncRoot)
