@@ -164,8 +164,6 @@ namespace ParkingSimulating.BLL
         {
             string path = Settings.LogPath;
 
-            if (!File.Exists(path)) throw new FileNotFoundException();
-
             if (!String.IsNullOrWhiteSpace(path)) throw new ArgumentNullException();
           
             decimal sum = 0;
