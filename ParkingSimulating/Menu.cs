@@ -181,6 +181,12 @@ namespace ParkingSimulating
             {
                 MainMenu(String.Format("Car diposit added carId:{0}; deposit:{1}.", carId, diposit));
             }
+            else
+            {
+                Console.WriteLine($"The machine with the number {carId} is not found. Press any key to try again.");
+                Console.ReadKey();
+                ReplenishCarBalance();
+            }
         }
 
         private static void ShowTotalIncome()

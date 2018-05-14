@@ -172,10 +172,19 @@ namespace ParkingSimulating.BLL
 
             lock (logFileSyncRoot)
             {
-                using (StreamWriter sw = new StreamWriter(path, true))
+                try
                 {
-                    sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
+                    using (StreamWriter sw = new StreamWriter(path, true))
+                    {
+                        sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
+                    }
                 }
+                catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentException e) { Console.WriteLine(e.Message); }
+                catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+                catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+                catch (IOException e) { Console.WriteLine(e.Message); }
             }
 
             lock (transactionsSyncRoot)
@@ -219,30 +228,24 @@ namespace ParkingSimulating.BLL
             List<string> log = new List<string>();
             if (File.Exists(path) && !String.IsNullOrWhiteSpace(path))
             {
-               
-                lock (logFileSyncRoot)
+                StreamReader sr;
+                try
                 {
-                    StreamReader sr;
-                    try
+                    using (sr = new StreamReader(path, true))
                     {
-                        using (sr = new StreamReader(path, true))
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                log.Add(line);
-                            }
+                            log.Add(line);
                         }
                     }
-                    catch(IOException ioe)
-                    {
-                        log.Add(ioe.Message);
-                    }
-                    finally
-                    {
-                        //
-                    }
                 }
+                catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentException e) { Console.WriteLine(e.Message); }
+                catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+                catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+                catch (IOException e) { Console.WriteLine(e.Message); }
             }
             return log;
         }
