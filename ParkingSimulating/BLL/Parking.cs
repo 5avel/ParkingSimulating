@@ -14,34 +14,12 @@ namespace ParkingSimulating.BLL
         public static Parking Instance { get => lazy.Value; }
 
         private List<Car> cars = new List<Car>();
-        private object carsSyncRoot = new object();
 
         private List<Transaction> transactions = new List<Transaction>();
 
         private object transactionsSyncRoot = new object();
 
-        private object logFileSyncRoot = new object();
-
-        private object parkingBalanceSyncRoot = new object();
-        private decimal parkingBalance;
-        public decimal ParkingBalance
-        {
-            get
-            {
-                lock (parkingBalanceSyncRoot)
-                {
-                    return parkingBalance;
-                }
-            }
-            private set
-            {
-                lock (parkingBalanceSyncRoot)
-                {
-                    parkingBalance = value;
-                }
-            }
-        }
-
+        public decimal ParkingBalance { get; set; }
 
         private Timer calcTimer;
         private Timer logTimer;
@@ -50,7 +28,6 @@ namespace ParkingSimulating.BLL
         {
             this.calcTimer = new Timer(new TimerCallback(PayCalc), null, Settings.Timeout, Settings.Timeout);
             this.logTimer = new Timer(new TimerCallback(WriteLogAndCleanTransactions), null, Settings.LogTimeout, Settings.LogTimeout);
-
         }
 
         public IList<T> CloneList<T>(IList<T> listToClone) where T : ICloneable
@@ -69,7 +46,7 @@ namespace ParkingSimulating.BLL
 
             if (cars.Count >= Settings.ParkingSpace) return false;
 
-            if (cars.Count(x => x.LicensePlate == car.LicensePlate) > 0) return false;
+            if (cars.Count(x => x.Id == car.Id) > 0) return false;
 
             cars.Add(car);
             return true;
@@ -78,13 +55,13 @@ namespace ParkingSimulating.BLL
         /// <summary>
         /// Removing car from parking
         /// </summary>
-        /// <param name="carLicensePlate">License Plate or Id</param>
+        /// <param name="id">License Plate or Id</param>
         /// <returns> 1 - car successfully deleted; 0 - car not deleted; -1 - carLicensePlate IsNullOrWhiteSpace; -2 - ar not found; -3 - The Car has a negative balance</returns>
-        public int DelCar(string carLicensePlate)
+        public int DelCar(string id)
         {
-            if (String.IsNullOrWhiteSpace(carLicensePlate)) return -1;
+            if (String.IsNullOrWhiteSpace(id)) return -1;
 
-            Car delCar = cars.FirstOrDefault<Car>(x => x.LicensePlate == carLicensePlate);
+            Car delCar = cars.FirstOrDefault<Car>(x => x.Id == id);
             if (delCar == null) return -2;
 
             if (delCar.Balance < 0) return -3;
@@ -130,16 +107,16 @@ namespace ParkingSimulating.BLL
                 // Add transaction
                 lock (transactionsSyncRoot)
                 {
-                    this.transactions.Add(new Transaction(car.LicensePlate, curPrice));
+                    this.transactions.Add(new Transaction(car.Id, curPrice));
                 }
             }
         }
 
-        public bool AddBalanceCar(string licensePlate, decimal money)
+        public bool AddBalanceCar(string id, decimal money)
         {
-            if (String.IsNullOrWhiteSpace(licensePlate)) return false;
+            if (String.IsNullOrWhiteSpace(id)) return false;
 
-            Car car = this.cars.FirstOrDefault(x => x.LicensePlate == licensePlate);
+            Car car = this.cars.FirstOrDefault(x => x.Id == id);
             if (car == null) return false;
 
             car.Balance += money;
@@ -152,10 +129,7 @@ namespace ParkingSimulating.BLL
 
         public int CountOccupiedParkingPlaces()
         {
-            lock (carsSyncRoot)
-            {
-                return this.cars.Count;
-            }
+             return this.cars.Count;
         }
 
         public List<Transaction> AllTransaction() => this.transactions;
@@ -163,54 +137,42 @@ namespace ParkingSimulating.BLL
         private void WriteLogAndCleanTransactions(object o)
         {
             string path = Settings.LogPath;
-          
-            decimal sum = 0;
-            lock (transactionsSyncRoot)
-            {
-                sum = transactions.Sum(t => t.Debited);
-            }
 
-            lock (logFileSyncRoot)
+            decimal sum = transactions.Sum(t => t.Debited);
+
+            try
             {
                 using (StreamWriter sw = new StreamWriter(path, true))
                 {
                     sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
                 }
             }
-
+            catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+            catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+            catch (ArgumentException e) { Console.WriteLine(e.Message); }
+            catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+            catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+            catch (IOException e) { Console.WriteLine(e.Message); }
+            
             lock (transactionsSyncRoot)
             {
                 transactions.Clear();
             }
-
         }
 
         public decimal GetIncomeLastMinute()
         {
-            decimal sum = 0;
-
-            lock (transactionsSyncRoot)
-            {
-                sum = transactions.Sum(t => t.Debited);
-            }
-
-            return sum;
+            return transactions.Sum(t => t.Debited); ;
         }
 
         public List<Car> GetAllCars()
         {
-            lock (carsSyncRoot)
-            {
-                return CloneList<Car>(this.cars).ToList<Car>();
-            }
+            return CloneList<Car>(this.cars).ToList<Car>();
         }
 
         public List<Transaction> GetAllTransactions()
         {
-            lock (transactionsSyncRoot)
-            {
-                return CloneList<Transaction>(this.transactions).ToList<Transaction>();
-            }
+            return CloneList<Transaction>(this.transactions).ToList<Transaction>();  
         }
 
         public List<string> GetTransactionsLog()
@@ -219,33 +181,26 @@ namespace ParkingSimulating.BLL
             List<string> log = new List<string>();
             if (File.Exists(path) && !String.IsNullOrWhiteSpace(path))
             {
-               
-                lock (logFileSyncRoot)
+                StreamReader sr;
+                try
                 {
-                    StreamReader sr;
-                    try
+                    using (sr = new StreamReader(path, true))
                     {
-                        using (sr = new StreamReader(path, true))
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                log.Add(line);
-                            }
+                            log.Add(line);
                         }
                     }
-                    catch(IOException ioe)
-                    {
-                        log.Add(ioe.Message);
-                    }
-                    finally
-                    {
-                        //
-                    }
                 }
+                catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+                catch (ArgumentException e) { Console.WriteLine(e.Message); }
+                catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+                catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+                catch (IOException e) { Console.WriteLine(e.Message); }
             }
             return log;
         }
-
     }
 }
