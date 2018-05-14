@@ -15,12 +15,12 @@ namespace ParkingSimulating
             if (msg != null) Console.WriteLine(msg);
             Console.WriteLine("=====MainMenu=====");
             Console.WriteLine("1. Add car.");
-            Console.WriteLine("2. Del car by id.");
+            Console.WriteLine("2. Remove the car by id.");
             Console.WriteLine("3. Replenish balance of the car.");
             Console.WriteLine("4. Show transaction history for the last minute.");
             Console.WriteLine("5. Show total income from parking.");
             Console.WriteLine("6. Show income in the last minute.");
-            Console.WriteLine("7. Free/occupied places count.");
+            Console.WriteLine("7. Free/occupied places on parking.");
             Console.WriteLine("8. Show all cars in the parking.");
             Console.WriteLine("9. Show Transactions.log.");
             Console.WriteLine("0. To Exit.");
@@ -70,7 +70,7 @@ namespace ParkingSimulating
                 Parking.Instance.CountFreeParkingPlaces(),
                 Parking.Instance.CountOccupiedParkingPlaces());
 
-            Console.WriteLine("Any kay to MainMenu");
+            Console.WriteLine("Any key to MainMenu");
             Console.ReadKey();
             MainMenu();
         }
@@ -181,6 +181,12 @@ namespace ParkingSimulating
             {
                 MainMenu(String.Format("Car diposit added carId:{0}; deposit:{1}.", carId, diposit));
             }
+            else
+            {
+                Console.WriteLine($"The machine with the number {carId} is not found. Press any key to try again.");
+                Console.ReadKey();
+                ReplenishCarBalance();
+            }
         }
 
         private static void ShowTotalIncome()
@@ -196,7 +202,7 @@ namespace ParkingSimulating
         {
             Console.Clear();
             Console.WriteLine("Total Income Last Minute: {0}.", Parking.Instance.GetIncomeLastMinute());
-            Console.WriteLine("Any kay to MainMenu");
+            Console.WriteLine("Any key to MainMenu");
             Console.ReadKey();
             MainMenu();
         }
@@ -206,9 +212,9 @@ namespace ParkingSimulating
             Console.Clear();
             foreach(Car car in Parking.Instance.GetAllCars())
             {
-                Console.WriteLine("carId:{0}; carType: {1}; deposit: {2}", car.LicensePlate, car.CarType, car.Balance);
+                Console.WriteLine("carId:{0}; carType: {1}; deposit: {2}", car.Id, car.CarType, car.Balance);
             }
-            Console.WriteLine("Any kay to MainMenu");
+            Console.WriteLine("Any key to MainMenu");
             Console.ReadKey();
             MainMenu();
         }
@@ -226,10 +232,10 @@ namespace ParkingSimulating
             {
                 foreach (Transaction Transaction in transactions)
                 {
-                    Console.WriteLine("DateTime: {0};\t CarLicensePlate: {1};\t Debited: {2}", Transaction.DateTime, Transaction.CarLicensePlate, Transaction.Debited);
+                    Console.WriteLine("DateTime: {0};\t CarLicensePlate: {1};\t Debited: {2}", Transaction.DateTime, Transaction.Id, Transaction.Debited);
                 }
             }
-            Console.WriteLine("Any kay to MainMenu");
+            Console.WriteLine("Any key to MainMenu");
             Console.ReadKey();
             MainMenu();
         }
@@ -241,7 +247,7 @@ namespace ParkingSimulating
             {
                 Console.WriteLine(str);
             }
-            Console.WriteLine("Any kay to MainMenu");
+            Console.WriteLine("Any key to MainMenu");
             Console.ReadKey();
             MainMenu();
         }
