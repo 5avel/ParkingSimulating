@@ -14,34 +14,12 @@ namespace ParkingSimulating.BLL
         public static Parking Instance { get => lazy.Value; }
 
         private List<Car> cars = new List<Car>();
-        private object carsSyncRoot = new object();
 
         private List<Transaction> transactions = new List<Transaction>();
 
         private object transactionsSyncRoot = new object();
 
-        private object logFileSyncRoot = new object();
-
-        private object parkingBalanceSyncRoot = new object();
-        private decimal parkingBalance;
-        public decimal ParkingBalance
-        {
-            get
-            {
-                lock (parkingBalanceSyncRoot)
-                {
-                    return parkingBalance;
-                }
-            }
-            private set
-            {
-                lock (parkingBalanceSyncRoot)
-                {
-                    parkingBalance = value;
-                }
-            }
-        }
-
+        public decimal ParkingBalance { get; set; }
 
         private Timer calcTimer;
         private Timer logTimer;
@@ -152,10 +130,7 @@ namespace ParkingSimulating.BLL
 
         public int CountOccupiedParkingPlaces()
         {
-            lock (carsSyncRoot)
-            {
-                return this.cars.Count;
-            }
+             return this.cars.Count;
         }
 
         public List<Transaction> AllTransaction() => this.transactions;
@@ -163,63 +138,42 @@ namespace ParkingSimulating.BLL
         private void WriteLogAndCleanTransactions(object o)
         {
             string path = Settings.LogPath;
-          
-            decimal sum = 0;
-            lock (transactionsSyncRoot)
-            {
-                sum = transactions.Sum(t => t.Debited);
-            }
 
-            lock (logFileSyncRoot)
+            decimal sum = transactions.Sum(t => t.Debited);
+
+            try
             {
-                try
+                using (StreamWriter sw = new StreamWriter(path, true))
                 {
-                    using (StreamWriter sw = new StreamWriter(path, true))
-                    {
-                        sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
-                    }
+                    sw.WriteLine("{0} - sum = {1:C2}", DateTime.Now, sum);
                 }
-                catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
-                catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
-                catch (ArgumentException e) { Console.WriteLine(e.Message); }
-                catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
-                catch (PathTooLongException e) { Console.WriteLine(e.Message); }
-                catch (IOException e) { Console.WriteLine(e.Message); }
             }
-
+            catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+            catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+            catch (ArgumentException e) { Console.WriteLine(e.Message); }
+            catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+            catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+            catch (IOException e) { Console.WriteLine(e.Message); }
+            
             lock (transactionsSyncRoot)
             {
                 transactions.Clear();
             }
-
         }
 
         public decimal GetIncomeLastMinute()
         {
-            decimal sum = 0;
-
-            lock (transactionsSyncRoot)
-            {
-                sum = transactions.Sum(t => t.Debited);
-            }
-
-            return sum;
+            return transactions.Sum(t => t.Debited); ;
         }
 
         public List<Car> GetAllCars()
         {
-            lock (carsSyncRoot)
-            {
-                return CloneList<Car>(this.cars).ToList<Car>();
-            }
+            return CloneList<Car>(this.cars).ToList<Car>();
         }
 
         public List<Transaction> GetAllTransactions()
         {
-            lock (transactionsSyncRoot)
-            {
-                return CloneList<Transaction>(this.transactions).ToList<Transaction>();
-            }
+            return CloneList<Transaction>(this.transactions).ToList<Transaction>();  
         }
 
         public List<string> GetTransactionsLog()
@@ -249,6 +203,5 @@ namespace ParkingSimulating.BLL
             }
             return log;
         }
-
     }
 }
