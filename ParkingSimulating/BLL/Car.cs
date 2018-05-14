@@ -8,14 +8,14 @@ namespace ParkingSimulating.BLL
 {
     public class Car: ICloneable
     {
-        public string LicensePlate { get; private set; }
+        public string Id { get; private set; }
         public decimal Balance { get; set; }
         public CarType CarType { get; private set; }
 
         public Car(string licensePlate, CarType carType, decimal balance = 0)
         {
             if (String.IsNullOrWhiteSpace(licensePlate)) throw new ArgumentException("");
-            this.LicensePlate = licensePlate;
+            this.Id = licensePlate;
             this.CarType = carType;
             this.Balance = balance;
         }
